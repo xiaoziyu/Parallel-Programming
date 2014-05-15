@@ -28,7 +28,7 @@ void Get_args(int argc, char* argv[], int* n_p, char* g_i_p,int* thread_count);
 void Generate_list(int a[], int n);
 void Print_list(int a[], int n, char* title);
 void Read_list(int a[], int n);
-void Odd_even_sort(int a[], int n);
+void Omp_odd_even_sort(int a[], int n,int thread_count);
 
 /*-----------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
@@ -48,8 +48,7 @@ int main(int argc, char* argv[]) {
    }
 
    beg = omp_get_wtime();
-# pragma omp parallel num_threads(thread_count)
-   Odd_even_sort(a, n);
+   Omp_odd_even_sort(a, n,thread_count);
    end = omp_get_wtime();
 
    Print_list(a, n, "After sort");
@@ -66,10 +65,11 @@ int main(int argc, char* argv[]) {
  * Purpose:   Summary of how to run program
  */
 void Usage(char* prog_name) {
-   fprintf(stderr, "usage:   %s <n> <g|i>\n", prog_name);
+   fprintf(stderr, "usage:   %s <n> <g|i> <c>\n", prog_name);
    fprintf(stderr, "   n:   number of elements in list\n");
    fprintf(stderr, "  'g':  generate list using a random number generator\n");
    fprintf(stderr, "  'i':  user input list\n");
+   fprintf(stderr, "  'c':  number of count\n");
 }  /* Usage */
 
 
@@ -148,15 +148,14 @@ void Read_list(int a[], int n) {
  * In args:      n
  * In/out args:  a
  */
-void Odd_even_sort(
-      int  a[]  /* in/out */, 
-      int  n    /* in     */) {
+void Omp_odd_even_sort(
+      int  a[]          /* in/out */, 
+      int  n            /* in     */,
+      int thread_count  /* in     */) {
    int phase, i, temp;
-   int thread_count = omp_get_num_threads();
 
 # pragma omp parallel num_threads(thread_count) \
 	default(none) shared(a, n) private(i,temp,phase)
-
    for (phase = 0; phase < n; phase++) 
       if (phase % 2 == 0) { /* Even phase */
 # pragma omp for

@@ -34,7 +34,7 @@ void Read_matrix(char prompt[], double A[], int m, int n);
 void Read_vector(char prompt [], double x[], int n);
 void Print_matrix(char title[], double A[], int m, int n);
 void Print_vector(char title[], double y[], int m);
-void Mat_vect_mult(double A[], double x[], double y[], int m, int n);
+void Omp_mat_vect_mult(double A[], double x[], double y[], int m, int n, int thread_count);
 void Gen_num(double tar[],int N);
 
 /*-------------------------------------------------------------------*/
@@ -65,8 +65,7 @@ int main(int argc,char* argv[]) {
 #  endif
 
    beg = omp_get_wtime();
-# pragma omp parallel num_threads(1)
-   Mat_vect_mult(A, x, y, m, n);
+   Omp_mat_vect_mult(A, x, y, m, n,thread_count);
    end = omp_get_wtime();
 
    Print_vector("y", y, m);
@@ -218,17 +217,17 @@ void Print_vector(
  *             n: the number of columns in A components in x
  * Out args:   y: the product vector Ax
  */
-void Mat_vect_mult(
-                   double  A[]  /* in  */, 
-                   double  x[]  /* in  */, 
-                   double  y[]  /* out */,
-                   int     m    /* in  */, 
-                   int     n    /* in  */) {
+void Omp_mat_vect_mult(
+                   double  A[]          /* in  */, 
+                   double  x[]          /* in  */, 
+                   double  y[]          /* out */,
+                   int     m            /* in  */, 
+                   int     n            /* in  */,
+		   int     thread_count /* in  */ ) {
    int i, j;
-   int thread_count = omp_get_num_threads();
 
-# pragma omp parallel num_threads(thread_count) \
-	shared(m,n) private(i)
+# pragma omp parallel for num_threads(thread_count) \
+	shared(A,x,y,m,n) private(i,j)
    for (i = 0; i < m; i++) {
       y[i] = 0.0;
       for (j = 0; j < n; j++)
